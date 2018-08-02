@@ -77,13 +77,31 @@ df$KoBPer<-df$kos_B/(df$won_B+df$lost_B)
 
 #add binaryresult value: 0 means that A won. 1 means that B won
 df$binaryresult<-ifelse(df$result=="win_A",0,1)
-#unique(df$binaryresult)
-boxing.x<-subset(df, select=c(na.omit(age_A,age_B,height_A,height_B,reach_A,reach_B,weight_A,weight_B,won_A,won_B,lost_A,lost_B,drawn_A,drawn_B,kos_A,kos_B,judge1_A,judge1_B,judge2_A,judge2_B,judge3_A,judge3_B)))
+
+#doublecheck that binary result is correct
+unique(df$binaryresult)
+
+#remove na's
+df<-na.omit(df)
+
+boxing.x<-subset(df, select=c(age_A,age_B,height_A,height_B,reach_A, reach_B,weight_A,weight_B,won_A,won_B,lost_A,lost_B,kos_A,kos_B,AdvAgeA, AdvHeightA,AdvReachA,AdvWgtA,Over35AgeA,Over35AgeB,Over15lbA,Over15lbB,WinPA,WinPB,KoAPer,KoBPer,binaryresult))
 boxing.y<-subset(df, select = c(binaryresult))
-pc.result<-prcomp(boxing.x,scale.=TRUE)
 
+#PCA
+pcboxing<-prcomp(boxing.x,scale.=TRUE)
+pcscores<-as.data.frame(pcboxing$x)
+pcscores$binaryresult<-boxing.y
 
+# Dr Turner used rotation. Not sure what it is. ?rotation
 
+pceigen<-(pcboxing$sdev)^2
+pcprop<-pceigen/sum(pceigen)
+
+#Not sure what we are doing here
+pccumprop<-cumsum(pcprop)
+plot(1:9,pcprop,type="l",main="Scree Plot",ylim=c(0,1),xlab="PC #",ylab="Proportion of Variation")
+plot(pcprop,type="l",main="Scree Plot",ylim=c(0,1),xlab="PC #",ylab="Proportion of Variation")
+lines(pccumprop,lty=3)
 
 #################################Snippets from Dr Turner##############################################
 ##glmnet
@@ -97,11 +115,7 @@ pc.result<-prcomp(boxing.x,scale.=TRUE)
 #Before moving forward with modeling the training data set. Lets use PCA and
 #hierarchical clustering to visualize the data and explore 
 #
-#a logical value indicating whether the variables
-#should be scaled to have unit variance before the
-#analysis takes place. The default is FALSE for
-#consistency with S, but in general scaling is advisable.
-
+# pc.result<-prcomp(dat.train.x,scale.=TRUE)
 # pc.scores<-pc.result$x
 # pc.scores<-data.frame(pc.scores)
 # pc.scores$Censor<-dat.train.y
