@@ -15,8 +15,6 @@ setwd("~/GitHub/6372BoxingProject")
 df<-read.csv("data.csv",na.strings = c("","NA"))
 
 #####################filter out bad & unnecessary data ########################################################
-#Use na.omit. #2583 observations remianing
-df<-na.omit(df)
 
 #eliminates draw outcomes
 #DD: I don't know why but this wasn't working so trying dplyr "filter"
@@ -79,15 +77,34 @@ df$KoBPer<-df$kos_B/(df$won_B+df$lost_B)
 df$binaryresult<-ifelse(df$result=="win_A",0,1)
 
 #doublecheck that binary result is correct
-unique(df$binaryresult)
+#unique(df$binaryresult)
 
-#remove na's
+#Recategorize the stances that are NA.
+df$stance_A<-as.character(df$stance_A)
+df$stance_B<-as.character(df$stance_B)
+df$stance_A[is.na(df$stance_A)] <- "Unknown"
+df$stance_B[is.na(df$stance_B)] <- "Unknown"
+
+#Check to make sure NA stanices are Recategorized
+#unique(df$stance_A)
+#unique(df$stance_B)
+
+#Remove any reminaing NA observations
 df<-na.omit(df)
+nrow(df)
 
-boxing.x<-subset(df, select=c(age_A,age_B,height_A,height_B,reach_A, reach_B,weight_A,weight_B,won_A,won_B,lost_A,lost_B,kos_A,kos_B,AdvAgeA, AdvHeightA,AdvReachA,AdvWgtA,Over35AgeA,Over35AgeB,Over15lbA,Over15lbB,WinPA,WinPB,KoAPer,KoBPer,binaryresult))
+############################EDA#################################################
+#Histograms, Box Plots, Scatter Plots , Covariance matrix,
+
+
+############################PCA#################################################
+
+#Choose all continuous variables
+boxing.x<-subset(df, select=c(age_A,age_B,height_A,height_B,reach_A, reach_B,weight_A,weight_B,won_A,won_B,lost_A,lost_B,kos_A,kos_B,AdvAgeA, AdvHeightA,AdvReachA,AdvWgtA,WinPA,WinPB,KoAPer,KoBPer))
 boxing.y<-subset(df, select = c(binaryresult))
 
-#PCA
+
+
 pcboxing<-prcomp(boxing.x,scale.=TRUE)
 pcscores<-as.data.frame(pcboxing$x)
 pcscores$binaryresult<-boxing.y
