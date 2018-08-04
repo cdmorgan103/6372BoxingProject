@@ -91,7 +91,7 @@ df$stance_B[is.na(df$stance_B)] <- "Unknown"
 
 #Remove any reminaing NA observations
 df<-na.omit(df)
-nrow(df)
+#nrow(df) result is 7135 observations
 
 ############################EDA#################################################
 #Histograms, Box Plots, Scatter Plots , Covariance matrix,
@@ -99,26 +99,34 @@ nrow(df)
 
 ############################PCA#################################################
 
-#Choose all continuous variables
+#Choose all continuous variables as x axis
 boxing.x<-subset(df, select=c(age_A,age_B,height_A,height_B,reach_A, reach_B,weight_A,weight_B,won_A,won_B,lost_A,lost_B,kos_A,kos_B,AdvAgeA, AdvHeightA,AdvReachA,AdvWgtA,WinPA,WinPB,KoAPer,KoBPer))
-boxing.y<-subset(df, select = c(binaryresult))
 
+# #Choose binary result as y axis
+# boxing.y<-subset(df, select = c(binaryresult))
 
+#Scale x variables and run pcomp
+pcresults<-prcomp(boxing.x,scale=TRUE)
 
-pcboxing<-prcomp(boxing.x,scale.=TRUE)
-pcscores<-as.data.frame(pcboxing$x)
-pcscores$binaryresult<-boxing.y
+#Put PC Scores into dataframe
+pcscores<-as.data.frame(pcresults$x)
+
+#BiPlot show that reach, weight and height aren't adding much  value
+biplot(pcresults, scale = 0)
+
+#Combine the pc scores with  variable with the df
+#pcscores$binaryresult<-boxing.y
 
 # Dr Turner used rotation. Not sure what it is. ?rotation
-
 pceigen<-(pcboxing$sdev)^2
 pcprop<-pceigen/sum(pceigen)
 
 #Not sure what we are doing here
 pccumprop<-cumsum(pcprop)
-plot(1:9,pcprop,type="l",main="Scree Plot",ylim=c(0,1),xlab="PC #",ylab="Proportion of Variation")
 plot(pcprop,type="l",main="Scree Plot",ylim=c(0,1),xlab="PC #",ylab="Proportion of Variation")
 lines(pccumprop,lty=3)
+
+plot(pcboxing,type = 'l')
 
 #################################Snippets from Dr Turner##############################################
 ##glmnet
