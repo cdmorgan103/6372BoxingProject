@@ -8,6 +8,14 @@ library(pheatmap)
 library(randomForest)
 library(dplyr)
 
+#"Retrospective Study"
+
+#Assumptions:
+#Multivariate normal distribution for entire set of variables
+#Univariate normal distribution on response
+#Linear relationships between scores on Y and scores on X for all variables
+#Uniform error variances for response (Y) across all values of X
+
 ##main file for boxing casestudy
 setwd("~/GitHub/6372BoxingProject")
 
@@ -83,7 +91,7 @@ df <- na.omit(df)
 ############################EDA#################################################
 #Histograms, Box Plots, Scatter Plots , Covariance matrix,
 
-#DD: Clearly our data is overepresenting the scenario when a wins vs b wins.
+#DD: Clearly our data is overepresenting the scenario when a wins vs when b wins.
 hist(df$binaryresult)
   #Split df by category
   df_A_wins <- filter(df, binaryresult == 0)
@@ -93,6 +101,9 @@ hist(df$binaryresult)
 
   #Randomly sample approx 20% of useable observations per category and combine back together
 dftrain <- rbind(sample_n(df_A_wins, 200), sample_n(df_B_wins, 200)) 
+
+write.csv(dftrain, file = "dftrain.csv")
+
 hist(dftrain$binaryresult)
 
 ############################PCA#################################################
@@ -102,21 +113,14 @@ boxing.x <-
   subset(
     dftrain,
     select = c(
-      age_A,
-      age_B,
-      height_A,
-      height_B,
-      reach_A,
-      reach_B,
-      weight_A,
-      weight_B,
-      won_A,
-      won_B,
-      lost_A,
-      lost_B,
-      kos_A,
-      kos_B
-      
+      AdvAgeA,     
+      AdvHeightA,
+      AdvReachA,
+      AdvWgtA,
+      WinPA,
+      WinPB,
+      KoAPer,
+      KoBPer 
     )
   )
 
@@ -131,7 +135,7 @@ pcresults <- prcomp(boxing.x, scale = TRUE)
 biplot(pcresults, scale = 0)
 
 #Put PC Scores into dataframe
-pcscores <- as.data.frame(pcresults$x[,1:9])
+pcscores <- as.data.frame(pcresults$x)
 
 #Combine the pc scores with  variable with the df
 pcscores$binaryresult<-boxing.y
@@ -153,19 +157,6 @@ ggplot(dftrain, aes(PC1, PC2, col = result, fill = result)) +
 #################################Snippets from Dr Turner##############################################
 ##glmnet
 
-#Get Training Set
-# dat.train <- dat[which(dat$Set == "Training"),]
-# dat.train.x <- dat.train[,6:ncol(dat.train)]
-# dat.train.y <- dat.train$Censor
-#
-# dat.train.y <- as.factor(as.character(dat.train.y))
-#Before moving forward with modeling the training data set. Lets use PCA and
-#hierarchical clustering to visualize the data and explore
-#
-# pc.result<-prcomp(dat.train.x,scale.=TRUE)
-# pc.scores<-pc.result$x
-# pc.scores<-data.frame(pc.scores)
-# pc.scores$Censor<-dat.train.y
 #
 #
 # #Loadings for interpretation
