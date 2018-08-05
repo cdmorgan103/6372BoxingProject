@@ -84,12 +84,17 @@ df$stance_B[is.na(df$stance_B)] <- "Unknown"
 
 #Check to make sure NA stances are recategorized #unique(df$stance_A) #unique(df$stance_B)
 
+#Notcied that the stance is same for A and B in all observations to keep only A and re-label it
+df$stance<-df$stance_A
+df<-df[c(-7,-8)]
+#unique(df$stance)
+
 #Remove any reminaing NA observations
 df <- na.omit(df)
 #nrow(df) result is 7135 observations
 
 ############################EDA#################################################
-#Histograms, Box Plots, Scatter Plots , Covariance matrix,
+#Need to add histograms, box Plots, corr and cov matrices,
 
 #DD: Clearly our data is overepresenting the scenario when a wins vs when b wins.
 hist(df$binaryresult)
@@ -101,14 +106,12 @@ hist(df$binaryresult)
 
   #Randomly sample approx 20% of useable observations per category and combine back together
 dftrain <- rbind(sample_n(df_A_wins, 200), sample_n(df_B_wins, 200)) 
-
-write.csv(dftrain, file = "dftrain.csv")
-
+#write.csv(dftrain, file = "dftrain.csv")
 hist(dftrain$binaryresult)
 
 ############################PCA#################################################
 
-#Choose all continuous variables as x axis
+#Choose continuous variables as x axis
 boxing.x <-
   subset(
     dftrain,
@@ -148,15 +151,29 @@ plot(pcprop,type="l",main="Scree Plot",ylim=c(0,1),xlab="PC #",ylab="Proportion 
 lines(pccumprop,lty=3)
 
 
-#Need to think about this
+
+#Combine everything into dftrain and ggplot
+dftrain <- cbind(dftrain, pcresults$x) 
+
+#Need to think about this.
 ggplot(dftrain, aes(PC1, PC2, col = result, fill = result)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")
+ggplot(dftrain, aes(PC2, PC3, col = result, fill = result)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")
+ggplot(dftrain, aes(PC1, PC3, col = result, fill = result)) +
   stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
   geom_point(shape = 21, col = "black")
 
 
+
+
+
+
+
 #################################Snippets from Dr Turner##############################################
 ##glmnet
-
 #
 #
 # #Loadings for interpretation
