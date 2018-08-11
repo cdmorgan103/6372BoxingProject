@@ -27,7 +27,7 @@ run;
 /* Candidate 1 */
 PROC logistic data= boxing;
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
-output out=boxinglogregout predprobs=I p=probpreb;
+/*output out=boxinglogregout predprobs=I p=probpreb;*/
 run;
 
 /* Candidate 2 */
