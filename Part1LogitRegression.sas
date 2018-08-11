@@ -25,31 +25,52 @@ output out=boxinglogregout predprobs=I p=probpreb;
 run;
 
 /* Chosen */
-PROC logistic data= boxing;
+PROC logistic data= boxing plots(only label)=(leverage dpc);
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
 output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
 
-/* Candidate 1  remove age_B*/
-PROC logistic data= boxing;
-model binaryresult = lost_A lost_B won_B WinPA /LACKFIT CTABLE;
-output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
-run;
-
-/* Candidate 1.5 add age A*/
-PROC logistic data= boxing;
-model binaryresult = age_A age_B lost_A lost_B won_B WinPA /LACKFIT CTABLE;
-output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
-run;
-
-/* Candidate 2 age A and B interaction*/
-PROC logistic data= boxing;
-model binaryresult = lost_A lost_B won_B WinPA age_A*age_B  /LACKFIT CTABLE;
-output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
-run;
+/* Candidate 1  remove age_B */
+/* PROC logistic data= boxing; */
+/* model binaryresult = lost_A lost_B won_B WinPA /LACKFIT CTABLE; */
+/* output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres; */
+/* run; */
+/*  */
+/* Candidate 1.5 add age A */
+/* PROC logistic data= boxing; */
+/* model binaryresult = age_A age_B lost_A lost_B won_B WinPA /LACKFIT CTABLE; */
+/* output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres; */
+/* run; */
+/*  */
+/* Candidate 2 age A and B interaction */
+/* PROC logistic data= boxing; */
+/* model binaryresult = lost_A lost_B won_B WinPA age_A*age_B  /LACKFIT CTABLE; */
+/* output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres; */
+/* run; */
 
 proc gplot data=boxinglogregout;
 plot resdev*obsno;
 plot pearres*obsno;
 run; quit;
- 
+
+proc print data=boxinglogregout;
+   where pearres > 2.5;
+run;
+
+DATA boxinglogregoutAge; 
+   SET boxinglogregout;
+   KEEP age_A age_B obsno;
+RUN;
+
+PROC SORT data=boxinglogregoutage;
+BY age_B;
+ods graphics off;
+title 'Fighter Ages';
+proc boxplot data=boxinglogregoutage;
+plot age_A*age_B;
+   inset min mean max stddev /
+      header = 'Overall Statistics'
+      pos    = tm;
+   insetgroup min max /
+      header = 'Extremes by Age';
+run;
