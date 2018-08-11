@@ -24,20 +24,32 @@ model binaryresult = age_A age_B height_A height_B reach_A reach_B weight_A weig
 output out=boxinglogregout predprobs=I p=probpreb;
 run;
 
-/* Candidate 1 */
+/* Chosen */
 PROC logistic data= boxing;
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
-/*output out=boxinglogregout predprobs=I p=probpreb;*/
+output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
 
-/* Candidate 2 */
+/* Candidate 1  remove age_B*/
 PROC logistic data= boxing;
-model binaryresult = lost_A lost_B won_A won_B AdvAgeA /LACKFIT CTABLE;;
-output out=boxinglogregout predprobs=I p=probpreb;
+model binaryresult = lost_A lost_B won_B WinPA /LACKFIT CTABLE;
+output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
+run;
+
+/* Candidate 1.5 add age A*/
+PROC logistic data= boxing;
+model binaryresult = age_A age_B lost_A lost_B won_B WinPA /LACKFIT CTABLE;
+output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
+run;
+
+/* Candidate 2 age A and B interaction*/
+PROC logistic data= boxing;
+model binaryresult = lost_A lost_B won_B WinPA age_A*age_B  /LACKFIT CTABLE;
+output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
 
 proc gplot data=boxinglogregout;
-plot resdev*VAR1;
-plot pearres*VAR1;
+plot resdev*obsno;
+plot pearres*obsno;
 run; quit;
  
