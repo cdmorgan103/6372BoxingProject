@@ -11,6 +11,7 @@ library(dplyr)
 #"Retrospective Study"
 #Mention the transformation issues (i.e we removed the draw observations) we did in the data. Perhaps A Wins or doesn't win. MAybe include draws.
 #COnsider LDA for all 3
+#Add Cross Validation
 #Assumptions:
 #Multivariate normal distribution for entire set of variables
 #Univariate normal distribution on response
