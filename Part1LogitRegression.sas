@@ -5,6 +5,7 @@
 /* 	Linear relationships between scores on Y and scores on X for all variables */
 /* 	Uniform error variances for response (Y) across all values of X */
 
+/************************* Part 1: Simple Thoughless Model Selection Without Interactions *************************/
 
 %web_drop_table(WORK.BOXING);
 FILENAME REFFILE "C:/Users/danie/Documents/GitHub/6372BoxingProject/train.csv";
@@ -13,21 +14,91 @@ PROC IMPORT DATAFILE=REFFILE
 	OUT=WORK.BOXING;
 	GETNAMES=YES;
 RUN;
-PROC PRINT data=boxing;
+/* PROC PRINT data=boxing; */
 
-/* Model Selection */
+/* Simple Model Selection (Without Interactions) */
+/* Stepwise */
 PROC logistic data= boxing;
 class Stance Over35AgeA	Over35AgeB Over15lbA Over15lbB;
-model binaryresult = age_A age_B height_A height_B reach_A reach_B weight_A weight_B won_A won_B lost_A lost_B kos_A kos_B AdvAgeA AdvHeightA AdvReachA AdvWgtA WinPA WinPB KoAPer KoBPer
+model binaryresult = age_A age_B height_A height_B reach_A reach_B weight_A weight_B won_A won_B lost_A lost_B kos_A kos_B 
 / selection = stepwise;
 output out=boxinglogregout predprobs=I p=probpreb;
 run;
+/* Forward */
+PROC logistic data= boxing;
+class Stance Over35AgeA	Over35AgeB Over15lbA Over15lbB;
+model binaryresult = age_A age_B height_A height_B reach_A reach_B weight_A weight_B won_A won_B lost_A lost_B kos_A kos_B 
+/ selection = forward;
+output out=boxinglogregout predprobs=I p=probpreb;
+run;
+/* Backward */
+PROC logistic data= boxing;
+class Stance Over35AgeA	Over35AgeB Over15lbA Over15lbB;
+model binaryresult = age_A age_B height_A height_B reach_A reach_B weight_A weight_B won_A won_B lost_A lost_B kos_A kos_B 
+/ selection = backward;
+output out=boxinglogregout predprobs=I p=probpreb;
+run;
 
-/* Chosen Model*/
+/* Test */
+%web_drop_table(WORK.BOXINGTEST);
+FILENAME REFFILE "C:/Users/danie/Documents/GitHub/6372BoxingProject/test.csv";
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.BOXINGTEST;
+	GETNAMES=YES;
+RUN;
+/* From Stepwise Selection  */
+proc logistic data=BOXINGTEST rocoptions(crossvalidate) plots(only)=roc;
+         model binaryresult(event="0") = Age_B won_B lost_A lost_B;
+        run;
+/* From Backward Selection  */
+proc logistic data=BOXINGTEST rocoptions(crossvalidate) plots(only)=roc;
+         model binaryresult(event="0") = Age_B height_B weight_B won_B lost_A lost_B;
+        run;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/************************* Part 2: Adding Common Sense and Interactions to Model Selection *************************/
+PROC logistic data= boxing;
+class Stance Over35AgeA	Over35AgeB Over15lbA Over15lbB;
+model binaryresult =  weight_A weight_B won_A won_B age_A*age_B height_A*height_B reach_A*reach_B weight_A*weight_B won_A*won_B lost_A*lost_B kos_A*kos_B / selection = stepwise;
+output out=boxinglogregout predprobs=I p=probpreb;
+run;
+
+/* Chosen Model w AdvAgeA */
 PROC logistic data= boxing plots(only label)=(leverage dpc);
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
 output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
+
+/* Chosen Model w out thinking */
+PROC logistic data= boxing plots(only label)=(leverage dpc);
+model binaryresult = age_B won_B lost_A lost_B  /LACKFIT CTABLE;
+output out=boxinglogregout predprobs=I p=probpreb resdev=resdev reschi=pearres;
+run;
+
+
+
 
 proc print data=boxing;
    where obsno = 3426;
@@ -74,28 +145,4 @@ PROC logistic data= boxingRemovedOutliers plots(only label)=(leverage dpc);
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
 output out=boxinglogregoutRemovedOutliers predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
-
-/* Test */
-%web_drop_table(WORK.BOXINGTEST);
-FILENAME REFFILE "C:/Users/danie/Documents/GitHub/6372BoxingProject/test.csv";
-PROC IMPORT DATAFILE=REFFILE
-	DBMS=CSV
-	OUT=WORK.BOXINGTEST;
-	GETNAMES=YES;
-RUN;
-
-proc logistic data=BOXINGTEST rocoptions(crossvalidate) plots(only)=roc;
-         model binaryresult(event="0") = lost_A lost_B won_B WinPA AdvAgeA;
-        run;
-
-
-
-
-
-
-
-
-
-
-
 
