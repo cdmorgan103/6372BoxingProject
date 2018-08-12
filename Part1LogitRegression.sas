@@ -1,3 +1,11 @@
+/* Assumptions */
+
+/* 	Multivariate normal distribution for entire set of variables */
+/* 	Univariate normal distribution on response */
+/* 	Linear relationships between scores on Y and scores on X for all variables */
+/* 	Uniform error variances for response (Y) across all values of X */
+
+
 %web_drop_table(WORK.BOXING);
 FILENAME REFFILE "C:/Users/danie/Documents/GitHub/6372BoxingProject/train.csv";
 PROC IMPORT DATAFILE=REFFILE
@@ -6,15 +14,6 @@ PROC IMPORT DATAFILE=REFFILE
 	GETNAMES=YES;
 RUN;
 PROC PRINT data=boxing;
-
-ods graphics on;
-proc corr data=boxing plots=matrix(histogram) PLOTS(MAXPOINTS=9999);
-run;
-ods graphics off;
-
-proc sgpanel data=boxing; 
-panelby stance; 
-reg x=WinPA y=WinPB / group=binaryresult alpha = .05 CLM CLI;
 
 /* Model Selection */
 PROC logistic data= boxing;
@@ -75,5 +74,28 @@ PROC logistic data= boxingRemovedOutliers plots(only label)=(leverage dpc);
 model binaryresult = lost_A lost_B won_B WinPA AdvAgeA /LACKFIT CTABLE;
 output out=boxinglogregoutRemovedOutliers predprobs=I p=probpreb resdev=resdev reschi=pearres;
 run;
+
+/* Test */
+%web_drop_table(WORK.BOXINGTEST);
+FILENAME REFFILE "C:/Users/danie/Documents/GitHub/6372BoxingProject/test.csv";
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.BOXINGTEST;
+	GETNAMES=YES;
+RUN;
+
+proc logistic data=BOXINGTEST rocoptions(crossvalidate) plots(only)=roc;
+         model binaryresult(event="0") = lost_A lost_B won_B WinPA AdvAgeA;
+        run;
+
+
+
+
+
+
+
+
+
+
 
 
